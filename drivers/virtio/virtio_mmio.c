@@ -70,6 +70,7 @@
 #include <linux/virtio_config.h>
 #include <uapi/linux/virtio_mmio.h>
 #include <linux/virtio_ring.h>
+#include <linux/delay.h>
 
 
 
@@ -112,11 +113,14 @@ static u64 vm_get_features(struct virtio_device *vdev)
 	u64 features;
 
 	writel(1, vm_dev->base + VIRTIO_MMIO_DEVICE_FEATURES_SEL);
+	msleep(1);
 	features = readl(vm_dev->base + VIRTIO_MMIO_DEVICE_FEATURES);
 	features <<= 32;
 
 	writel(0, vm_dev->base + VIRTIO_MMIO_DEVICE_FEATURES_SEL);
+	msleep(1);
 	features |= readl(vm_dev->base + VIRTIO_MMIO_DEVICE_FEATURES);
+	pr_err("Device Features %llx", features);
 
 	return features;
 }
@@ -136,12 +140,15 @@ static int vm_finalize_features(struct virtio_device *vdev)
 	}
 
 	writel(1, vm_dev->base + VIRTIO_MMIO_DRIVER_FEATURES_SEL);
+	msleep(1);
 	writel((u32)(vdev->features >> 32),
 			vm_dev->base + VIRTIO_MMIO_DRIVER_FEATURES);
 
 	writel(0, vm_dev->base + VIRTIO_MMIO_DRIVER_FEATURES_SEL);
+	msleep(1);
 	writel((u32)vdev->features,
 			vm_dev->base + VIRTIO_MMIO_DRIVER_FEATURES);
+	pr_err("Driver Features %llx", vdev->features);
 
 	return 0;
 }
@@ -391,6 +398,7 @@ static struct virtqueue *vm_setup_vq(struct virtio_device *vdev, unsigned int in
 
 	/* Select the queue we're interested in */
 	writel(index, vm_dev->base + VIRTIO_MMIO_QUEUE_SEL);
+	msleep(1);
 
 	/* Queue shouldn't already be set up. */
 	if (readl(vm_dev->base + (vm_dev->version == 1 ?
@@ -462,6 +470,7 @@ static struct virtqueue *vm_setup_vq(struct virtio_device *vdev, unsigned int in
 
 		writel(1, vm_dev->base + VIRTIO_MMIO_QUEUE_READY);
 	}
+	msleep(1);
 
 	vq->priv = info;
 	info->vq = vq;
