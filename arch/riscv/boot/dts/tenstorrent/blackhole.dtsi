@@ -131,23 +131,31 @@
 			#address-cells = <0>;
 			riscv,ndev = <128>;
 		};
+		msi_catcher: interrupt-controller@20060000 {
+			compatible = "tenstorrent,msi-catcher";
+			reg = <0x00 0x20060000 0x00 0x10>;
+			interrupt-parent = <&plic0>;
+			interrupts = <6>, <7>;  /* PLIC sources #6 (not empty) and #7 (HWM) */
+			interrupt-controller;
+			#interrupt-cells = <1>;
+		};
 		virtio_blk_0@40012fe00000 {
 			compatible = "virtio,mmio";
 			reg = <0x4001 0x2fe00000 0x00 0x200000>;
 			interrupts = <33>;
-			interrupt-parent = <&plic0>;
+			interrupt-parent = <&msi_catcher>;
 		};
 		virtio_net_0@40012fc00000 {
 			compatible = "virtio,mmio";
 			reg = <0x4001 0x2fc00000 0x00 0x200000>;
 			interrupts = <32>;
-			interrupt-parent = <&plic0>;
+			interrupt-parent = <&msi_catcher>;
 		};
 		virtio_blk_1@40012fa00000 {
 			compatible = "virtio,mmio";
 			reg = <0x4001 0x2fa00000 0x00 0x200000>;
 			interrupts = <31>;
-			interrupt-parent = <&plic0>;
+			interrupt-parent = <&msi_catcher>;
 		};
 	};
 };

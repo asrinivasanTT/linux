@@ -616,7 +616,20 @@ config SIFIVE_PLIC
 	bool
 	depends on RISCV
 	select IRQ_DOMAIN_HIERARCHY
+	select TENSTORRENT_MSI_CATCHER
 	select GENERIC_IRQ_EFFECTIVE_AFF_MASK if SMP
+
+config TENSTORRENT_MSI_CATCHER
+	bool "Tenstorrent MSI Catcher Interrupt Controller"
+	depends on RISCV
+	select IRQ_DOMAIN_HIERARCHY
+	help
+	  This enables support for the Tenstorrent MSI Catcher, a small
+	  memory-mapped FIFO attached to the platform-level interrupt
+	  controller (PLIC). The MSI catcher provides a convenient way
+	  to atomically raise interrupts via the NoC.
+
+	  If you have a Tenstorrent chip with an MSI catcher, say Y.
 
 config STARFIVE_JH8100_INTC
 	bool "StarFive JH8100 External Interrupt Controller"
