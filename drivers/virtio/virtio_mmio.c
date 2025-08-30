@@ -55,6 +55,7 @@
 #define pr_fmt(fmt) "virtio-mmio: " fmt
 
 #include <linux/acpi.h>
+#include <linux/atomic.h>
 #include <linux/dma-mapping.h>
 #include <linux/highmem.h>
 #include <linux/interrupt.h>
@@ -64,6 +65,7 @@
 #include <linux/of.h>
 #include <linux/platform_device.h>
 #include <linux/pm.h>
+#include <linux/random.h>
 #include <linux/slab.h>
 #include <linux/spinlock.h>
 #include <linux/virtio.h>
@@ -94,6 +96,9 @@ struct virtio_mmio_device {
 	/* a list of queues so we can dispatch IRQs */
 	spinlock_t lock;
 	struct list_head virtqueues;
+	
+	atomic_t interrupt_count;
+	atomic_t unhandled_interrupt_count;
 };
 
 struct virtio_mmio_vq_info {
@@ -374,6 +379,18 @@ static irqreturn_t vm_interrupt(int irq, void *opaque)
 		list_for_each_entry(info, &vm_dev->virtqueues, node)
 			ret |= vring_interrupt(irq, info->vq);
 		spin_unlock_irqrestore(&vm_dev->lock, flags);
+	}
+	
+	atomic_inc(&vm_dev->interrupt_count);
+	if (ret != IRQ_HANDLED) {
+		atomic_inc(&vm_dev->unhandled_interrupt_count);
+	}
+	if (atomic_read(&vm_dev->interrupt_count) == 100000) {
+		int handled = atomic_read(&vm_dev->interrupt_count);
+		int unhandled = atomic_read(&vm_dev->unhandled_interrupt_count);
+		pr_err("Interrupt stats  Ratio: %d/%d\n", unhandled, handled);
+		atomic_set(&vm_dev->interrupt_count, 0);
+		atomic_set(&vm_dev->unhandled_interrupt_count, 0);
 	}
 
 	return ret;
@@ -692,6 +709,8 @@ static int virtio_mmio_probe(struct platform_device *pdev)
 	vm_dev->pdev = pdev;
 	INIT_LIST_HEAD(&vm_dev->virtqueues);
 	spin_lock_init(&vm_dev->lock);
+	atomic_set(&vm_dev->interrupt_count, 0);
+	atomic_set(&vm_dev->unhandled_interrupt_count, 0);
 
 	vm_dev->base = devm_platform_ioremap_resource(pdev, 0);
 	if (IS_ERR(vm_dev->base)) {
