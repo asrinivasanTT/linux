@@ -7,9 +7,9 @@
 	model = "Tenstorrent Blackhole";
 	compatible = "tenstorrent,blackhole-card", "tenstorrent,blackhole";
 
-	memory@400100000000 {
+	memory@400180000000 {
 		device_type = "memory";
-		reg = <0x4001 0x00000000 0x1 0x00000000>;
+		reg = <0x4001 0x80000000 0x0 0x80000000>;
 	};
 
 	reserved-memory {

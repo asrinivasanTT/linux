@@ -9,7 +9,7 @@
 
 	memory@400100000000 {
 		device_type = "memory";
-		reg = <0x4001 0x00000000 0x1 0x00000000>;
+		reg = <0x4001 0x00000000 0x0 0x80000000>;
 	};
 
 	reserved-memory {
@@ -17,15 +17,15 @@
 		#size-cells = <2>;
 		ranges;
 
-		virtio_devices: memory@4001ffe00000 {
-			reg = <0x4001 0xffe00000 0x00 0x200000>;
+		virtio_devices: memory@40017fe00000 {
+			reg = <0x4001 0x7fe00000 0x00 0x200000>;
 			no-map;
 		};
 	};
 
-	virtio_net_0@4001ffe00000 {
+	virtio_net_0@40017fe00000 {
 		compatible = "virtio,mmio";
-		reg = <0x4001 0xffe00000 0x00 0x200000>;
+		reg = <0x4001 0x7fe00000 0x00 0x200000>;
 		interrupts-extended = <&plic0 33>;
 	};
 };
